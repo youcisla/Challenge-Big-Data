@@ -18,7 +18,7 @@ A Python-based web application to explore, visualize, and predict Olympic Games 
 1.  **Clone the repository**:
     ```bash
     git clone https://github.com/youcisla/Challenge-Big-Data.git
-    cd ChallengeBigData
+    cd Challenge-Big-Data
     ```
 
 2.  **Install dependencies**:
