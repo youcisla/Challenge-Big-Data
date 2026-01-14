@@ -4,7 +4,7 @@ install:
 	pip install -r requirements.txt
 
 run:
-	streamlit run app.py
+	python manage.py runserver
 
 clean:
 	# Windows compatible clean would be 'del' or 'rmdir', but 'rm -rf' works in Git Bash/WSL

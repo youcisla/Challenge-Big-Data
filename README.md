@@ -1,17 +1,17 @@
-# Olympic Games Data Analytics 🏅
+# Olympic Games Analytics 🏅
 
-A Python-based web application to explore, visualize, and predict Olympic Games historical data (Athens 1896 - Beijing 2022).
+A robust **Django** web application to explore, visualize, and predict Olympic Games historical data (Athens 1896 - Beijing 2022).
 
 ## Features
-- **Data Exploration**: Interactive visualizations of medal counts and participation trends.
+- **Dashboard**: Professional Bootstrap 5 interface with high-level KPIs.
+- **Data Exploration**: Visualization of medal counts and participation trends.
 - **Predictions**: AI/ML integration to predict future outcomes (Paris 2024).
-- **Clustering**: Analysis of country performance clusters.
-- **Database**: Robust PostgreSQL storage via Supabase.
+- **Database**: PostgreSQL storage (Supabase).
+- **Architecture**: Scalable Django MVT (Model-View-Template) structure.
 
 ## Prerequisites
-- **Python**: Version **3.10, 3.11, or 3.12** is required.
-  > ⚠️ **Note**: Python 3.14 is currently **not supported** due to dependency compatibility issues.
-- **PostgreSQL Database**: A Supabase instance (or local Postgres) with the required schema.
+- **Python**: Version 3.10+
+- **PostgreSQL Database**: A Supabase instance with the `olympic_stats` table populated.
 
 ## Installation
 
@@ -22,23 +22,14 @@ A Python-based web application to explore, visualize, and predict Olympic Games 
     ```
 
 2.  **Install dependencies**:
-    We have provided a helper script for Windows:
     ```powershell
-    .\make install
+    pip install -r requirements.txt
     ```
-    *(If you are on Linux/Mac, use `make install` or run `pip install -r requirements.txt`)*
 
 ## Configuration
 
 1.  **Environment Variables**:
-    Copy `.env.example` to `.env`:
-    ```powershell
-    copy .env.example .env
-    ```
-
-2.  **Edit `.env`**:
-    Open the `.env` file and fill in your Supabase **Connection Pooling** credentials. You can find these in the Supabase Dashboard under `Project Settings > Database > Connection Pooling`.
-
+    Copy `.env.example` to `.env` and fill in your Supabase credentials:
     ```ini
     user=postgres.your_project_ref
     password=your_database_password
@@ -47,22 +38,22 @@ A Python-based web application to explore, visualize, and predict Olympic Games 
     dbname=postgres
     ```
 
-3.  **Database Setup**:
-    The database schema is defined in `db.sql`.
-    - If your database is empty, execute the contents of `db.sql` in your Supabase SQL Editor.
-    - Import the datasets (Hosts, Athletes, Results, Medals) if available.
-
 ## Running the App
 
-To launch the Streamlit dashboard:
-
+You can use the helper script (Windows):
 ```powershell
 .\make run
 ```
+Or run the standard Django command:
+```powershell
+python manage.py runserver
+```
 
-The application will open in your browser at `http://localhost:8501`.
+Open your browser at `http://127.0.0.1:8000`.
 
-## Troubleshooting
-
--   **"pip not recognized"**: Ensure Python is added to your PATH. Use `.\make install` which uses `python -m pip` to avoid this.
--   **Build Errors**: If you see errors about `meson-python` or `pyroaring`, check your Python version (`python --version`). You must use Python 3.12 or lower.
+## Project Structure
+-   `config/`: Main Django project settings and URLs.
+-   `core/`: Main application logic (Models, Views).
+-   `templates/`: HTML templates using Bootstrap 5.
+-   `static/`: CSS and JavaScript files.
+-   `import_data.py`: Script to populate the database from CSV.

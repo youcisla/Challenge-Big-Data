@@ -1,30 +1,21 @@
-@echo off
-if "%1" == "install" goto install
-if "%1" == "run" goto run
-if "%1" == "clean" goto clean
-goto help
+@ECHO OFF
+
+IF "%1"=="install" GOTO install
+IF "%1"=="run" GOTO run
+IF "%1"=="clean" GOTO clean
+GOTO :EOF
 
 :install
-echo Installing requirements...
-python -m pip install -r requirements.txt
-goto end
+	echo Installing dependencies...
+	python -m pip install -r requirements.txt
+	GOTO :EOF
 
 :run
-echo Running Streamlit app...
-python -m streamlit run app.py
-goto end
+	echo Running Django Server...
+	python manage.py runserver
+	GOTO :EOF
 
 :clean
-echo Cleaning up...
-rmdir /s /q __pycache__ 2>nul
-rmdir /s /q src\__pycache__ 2>nul
-goto end
-
-:help
-echo Usage: 
-echo   make.bat install  - Install dependencies
-echo   make.bat run      - Run the application
-echo   make.bat clean    - Remove build artifacts
-goto end
-
-:end
+	echo Cleaning up...
+	rd /s /q __pycache__
+	GOTO :EOF

@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="hero text-center">
+    <h1 class="display-4 fw-bold">120 Years of Excellence</h1>
+    <p class="lead">Explore the history, trends, and future of the Olympic Games.</p>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-4 mb-5">
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <h6 class="text-muted">Total Games</h6>
+            <div class="metric-value">{{ total_games }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <h6 class="text-muted">Countries</h6>
+            <div class="metric-value">{{ total_countries }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <h6 class="text-muted">Athletes</h6>
+            <div class="metric-value">{{ total_athletes }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <h6 class="text-muted">Medals Awarded</h6>
+            <div class="metric-value">{{ total_medals }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card p-4">
+            <h4>🏅 Top Performing Countries</h4>
+            <div id="chart-container">
+                <!-- Plotly Chart will be rendered here -->
+                {{ chart_html|safe }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
