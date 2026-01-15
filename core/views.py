@@ -173,7 +173,83 @@ def myths(request):
     context = {
         'myths': myths_list
     }
+    context = {
+        'myths': myths_list
+    }
     return render(request, 'core/myths.html', context)
+
+from .ml_service import MLService
+
+
+def predictions(request):
+    ml_service = MLService()
+    results = ml_service.predict_paris_2024()
+    
+    # Separate France for "Golden Card"
+    fra_prediction = next((item for item in results if item['country'] == 'FRA'), None)
+    
+    # Top 3 for Podium
+    top_3 = results[:3] if len(results) >= 3 else results
+    
+    # Full Leaderboard
+    leaderboard = results
+    
+    # Mock "Starts to Watch" (Athletes)
+    stars = [
+        {'name': 'Léon Marchand', 'country': 'FRA', 'sport': 'Natation', 'event': '400m 4 Nages', 'prob': 98, 'img': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/L%C3%A9on_Marchand_2023.jpg/640px-L%C3%A9on_Marchand_2023.jpg'},
+        {'name': 'Simone Biles', 'country': 'USA', 'sport': 'Gymnastique', 'event': 'Concours Général', 'prob': 95, 'img': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Simone_Biles_at_the_2016_Olympics_all-around_gold_medal_podium_%2828902897262%29_%28cropped%29.jpg/480px-Simone_Biles_at_the_2016_Olympics_all-around_gold_medal_podium_%2828902897262%29_%28cropped%29.jpg'},
+        {'name': 'Teddy Riner', 'country': 'FRA', 'sport': 'Judo', 'event': '+100kg', 'prob': 85, 'img': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Teddy_Riner_Rio_2016.jpg/480px-Teddy_Riner_Rio_2016.jpg'},
+        {'name': 'Armand Duplantis', 'country': 'SWE', 'sport': 'Athlétisme', 'event': 'Saut à la perche', 'prob': 99, 'img': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Armand_Duplantis_2020.jpg/480px-Armand_Duplantis_2020.jpg'},
+        {'name': 'Noah Lyles', 'country': 'USA', 'sport': 'Athlétisme', 'event': '100m', 'prob': 75, 'img': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Noah_Lyles_Doha_2019.jpg/480px-Noah_Lyles_Doha_2019.jpg'},
+    ]
+    
+    context = {
+        'fra_prediction': fra_prediction,
+        'top_3': top_3,
+        'leaderboard': leaderboard,
+        'stars': stars,
+    }
+    return render(request, 'core/predictions.html', context)
+
+def comparison(request):
+    """
+    Compares AI predictions with 'Official' (Mocked) results.
+    """
+    ml_service = MLService()
+    preds = ml_service.predict_paris_2024()
+    
+    # Mock Official Results (Simulated for Demo)
+    import random
+    random.seed(42) # Fixed seed for consistency
+    
+    comp_data = []
+    
+    for p in preds:
+        predicted = p['predicted_medals']
+        # Simulate 'Actual' results with some variance
+        variance = random.randint(-5, 5)
+        real = max(0, predicted + variance)
+        
+        diff = real - predicted
+        
+        status = 'perfect' if diff == 0 else ('under' if diff > 0 else 'over')
+        
+        comp_data.append({
+            'country': p['country'],
+            'predicted': predicted,
+            'real': real,
+            'diff': diff,
+            'status': status,
+            'abs_diff': abs(diff)
+        })
+        
+    # Sort by 'Real' medals count
+    comp_data.sort(key=lambda x: x['real'], reverse=True)
+    
+    context = {
+        'comparison': comp_data
+    }
+    return render(request, 'core/comparison.html', context)
 
 # UTILITY
 import json

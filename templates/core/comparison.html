@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="row mb-5 align-items-center">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-2">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-decoration-none">Accueil</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'predictions' %}"
+                        class="text-decoration-none">Prédictions</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Comparaison</li>
+            </ol>
+        </nav>
+        <h1 class="fw-bold display-6 mb-0 text-info"><i class="bi bi-bar-chart-line-fill me-2"></i>Comparaison Réel vs
+            IA</h1>
+        <p class="text-muted lead mt-2">Confrontation des prédictions de l'Oracle avec les résultats officiels
+            (Simulation).</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 fw-bold py-3">Tableau Comparatif</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0 align-middle">
+                        <thead class="bg-light">
+                            <tr>
+                                <th scope="col" class="ps-4">Pays</th>
+                                <th scope="col" class="text-center fw-bold text-primary">Prédiction (IA)</th>
+                                <th scope="col" class="text-center fw-bold text-dark">Résultat (Simulé)</th>
+                                <th scope="col" class="text-center">Écart</th>
+                                <th scope="col" class="text-end pe-4">Précision</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in comparison|slice:":50" %}
+                            <tr>
+                                <td class="ps-4 fw-bold">
+                                    <img src="https://flagcdn.com/24x18/{{ item.country|lower|slice:':2' }}.png"
+                                        class="me-2 shadow-sm rounded-1" alt="{{ item.country }}"
+                                        onerror="this.style.display='none'">
+                                    {{ item.country }}
+                                </td>
+                                <td class="text-center fw-bold text-primary fs-5">{{ item.predicted }}</td>
+                                <td class="text-center fw-bold text-dark fs-5">{{ item.real }}</td>
+                                <td class="text-center">
+                                    {% if item.diff > 0 %}
+                                    <span class="badge bg-success">+{{ item.diff }} (Performance)</span>
+                                    {% elif item.diff < 0 %} <span class="badge bg-danger">{{ item.diff }}
+                                        (Déception)</span>
+                                        {% else %}
+                                        <span class="badge bg-primary">Exact !</span>
+                                        {% endif %}
+                                </td>
+                                <td class="text-end pe-4">
+                                    {% if item.abs_diff == 0 %}
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                    {% elif item.abs_diff <= 3 %} <i class="bi bi-check-circle text-success"></i>
+                                        {% elif item.abs_diff <= 10 %} <i class="bi bi-exclamation-circle text-warning">
+                                            </i>
+                                            {% else %}
+                                            <i class="bi bi-x-circle-fill text-danger"></i>
+                                            {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Since flagcdn needs ISO2, and our mapped list is in the parent predictions page, 
+    // we should ideally reuse it. But for simplicity in this new standalone view, 
+    // let's add a quick fallback script or rely on the slice trick in template if lucky,
+    // OR just include the mapping JS again.
+    // The template slice above `slice:':2'` is lazy and will likely fail for 3-letter codes that don't match first 2.
+    // Let's use the safer JS approach.
+
+    const iso3ToIso2 = {
+        'FRA': 'fr', 'USA': 'us', 'CHN': 'cn', 'GBR': 'gb', 'JPN': 'jp',
+        'AUS': 'au', 'ITA': 'it', 'GER': 'de', 'NED': 'nl', 'CAN': 'ca',
+        'BRA': 'br', 'NZL': 'nz', 'HUN': 'hu', 'KOR': 'kr', 'RUS': 'ru',
+        'ROC': 'ru', 'ESP': 'es', 'UKR': 'ua', 'CUB': 'cu', 'SWE': 'se',
+        'SUI': 'ch', 'POL': 'pl', 'DEN': 'dk', 'KEN': 'ke', 'NOR': 'no',
+        'JAM': 'jm', 'CZE': 'cz', 'ETH': 'et', 'CRO': 'hr', 'IRI': 'ir',
+        'SRB': 'rs', 'AUT': 'at', 'BEL': 'be', 'BUL': 'bg', 'SLO': 'si',
+        'TUR': 'tr', 'UZB': 'uz', 'GEO': 'ge', 'TPE': 'tw', 'COL': 'co',
+        'GRE': 'gr', 'UGA': 'ug', 'ECU': 'ec', 'IRL': 'ie', 'ISR': 'il',
+        'QAT': 'qa', 'BAH': 'bs', 'KOS': 'xk', 'VEN': 've', 'EGY': 'eg',
+        'IND': 'in', 'HKG': 'hk', 'SVK': 'sk', 'RSA': 'za', 'ARG': 'ar',
+        'KAZ': 'kz', 'MEX': 'mx', 'FIN': 'fi', 'LAT': 'lv', 'EST': 'ee'
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll('img[onerror]').forEach(img => {
+            // We might implement a fix here if the slice fails, but let's assume the user accepts the 'demo' nature.
+            // Actually, let's fix it properly.
+            const row = img.closest('tr');
+            if (row) {
+                const txt = row.querySelector('td').innerText.trim();
+                // Extract ISO3 from text (it's just the text)
+                const iso3 = txt;
+                const iso2 = iso3ToIso2[iso3];
+                if (iso2) {
+                    img.src = `https://flagcdn.com/24x18/${iso2}.png`;
+                    img.style.display = 'inline';
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

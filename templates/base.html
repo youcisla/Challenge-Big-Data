@@ -29,16 +29,23 @@
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
           <li class="navbar-nav-item">
-            <a class="nav-link active" href="/">Accueil</a>
+            <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
+              href="{% url 'home' %}">Accueil</a>
           </li>
           <li class="navbar-nav-item">
             <a class="nav-link" href="/explorer/">Explorateur</a>
           </li>
-          <li class="navbar-nav-item">
-            <a class="nav-link" href="/myths/">Mythes</a>
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'myths' %}active{% endif %}"
+              href="{% url 'myths' %}">
+              <i class="bi bi-lightbulb me-1"></i>Mythes
+            </a>
           </li>
-          <li class="navbar-nav-item">
-            <a class="nav-link" href="#">Prédictions</a> <!-- Pending -->
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'predictions' %}active{% endif %}"
+              href="{% url 'predictions' %}">
+              <i class="bi bi-robot me-1"></i>Prédictions
+            </a>
           </li>
         </ul>
       </div>

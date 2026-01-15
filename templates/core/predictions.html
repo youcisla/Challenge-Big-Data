@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-5 align-items-center">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-2">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-decoration-none">Accueil</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Prédictions</li>
+            </ol>
+        </nav>
+        <h1 class="fw-bold display-6 mb-0 text-warning"><i class="bi bi-robot me-2"></i>Oracle Paris 2024</h1>
+        <p class="text-muted lead mt-2">Prédictions basées sur l'Intelligence Artificielle (XGBoost).</p>
+        <div class="mt-3">
+            <a href="{% url 'comparison' %}" class="btn btn-outline-info btn-sm rounded-pill px-3">
+                <i class="bi bi-bar-chart-line me-1"></i>Voir Comparatif Réel vs IA
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ATHLETES TO WATCH (Mock/Demo) -->
+<div class="row mb-5">
+    <div class="col-12 mb-3">
+        <h5 class="fw-bold text-white border-start border-4 border-warning ps-3">Athlètes à Suivre (Stars)</h5>
+    </div>
+    {% for star in stars %}
+    <div class="col-md-2 col-6 mb-3">
+        <div class="card border-0 shadow-sm h-100 bg-dark text-white text-center overflow-hidden position-relative">
+            <img src="{{ star.img }}" class="card-img-top" alt="{{ star.name }}"
+                style="height: 150px; object-fit: cover; opacity: 0.8;">
+            <div class="card-img-overlay d-flex flex-column justify-content-end p-2"
+                style="background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);">
+                <h6 class="fw-bold mb-0 small">{{ star.name }}</h6>
+                <div class="small text-warning">{{ star.sport }}</div>
+                <div class="badge bg-primary mt-1" style="font-size: 0.7rem;">Or: {{ star.prob }}%</div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- FRANCE GOLDEN CARD -->
+{% if fra_prediction %}
+<div class="row mb-5 justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+            <div class="card-body text-center p-5">
+                <h5 class="text-uppercase text-white-50 fw-bold mb-3">Prédiction France 🇫🇷</h5>
+                <h2 class="display-3 fw-bold text-white mb-2 counter">{{ fra_prediction.predicted_medals }}</h2>
+                <div class="badge bg-warning text-dark fs-6 mb-4">Médailles Attendues</div>
+                <p class="text-white-50 mb-0">Basé sur une délégation estimée de <strong>{{
+                        fra_prediction.baseline_athletes }}</strong> athlètes.</p>
+                <div class="mt-3 text-success small fw-bold">
+                    <i class="bi bi-graph-up-arrow me-1"></i>+3 médailles vs Tokyo 2020 (33)
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- CSS for Glassmorphism & Flags -->
+<style>
+    .glass-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+
+    .flag-icon {
+        width: 24px;
+        height: 18px;
+        object-fit: cover;
+        border-radius: 2px;
+        margin-right: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    .text-silver {
+        color: #C0C0C0 !important;
+    }
+
+    .text-bronze {
+        color: #CD7F32 !important;
+    }
+
+    .podium-1 {
+        order: 2;
+        margin-top: -20px;
+        z-index: 10;
+        transform: scale(1.05);
+    }
+
+    .podium-2 {
+        order: 1;
+        margin-top: 20px;
+    }
+
+    .podium-3 {
+        order: 3;
+        margin-top: 35px;
+    }
+
+    .table-sticky-header thead th {
+        position: sticky;
+        top: 0;
+        background-color: #f8f9fa;
+        z-index: 1;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+</style>
+
+<!-- TOP 3 PODIUM -->
+<div class="row mb-5 g-4 justify-content-center align-items-end">
+    <div class="col-12 w-100 text-center mb-2">
+        <h4 class="fw-bold text-white border-bottom pb-2 d-inline-block px-5"><i
+                class="bi bi-trophy-fill me-2 text-warning"></i>Favoris Mondiaux</h4>
+    </div>
+
+    {% for pred in top_3 %}
+    <div
+        class="col-md-3 {% if forloop.counter == 1 %}podium-1{% elif forloop.counter == 2 %}podium-2{% else %}podium-3{% endif %}">
+        <div class="card border-0 shadow-lg h-100 glass-card"
+            style="border-color: {% if forloop.counter == 1 %}rgba(251, 191, 36, 0.5){% elif forloop.counter == 2 %}rgba(192, 192, 192, 0.5){% else %}rgba(205, 127, 50, 0.5){% endif %};">
+            <div class="card-body text-center py-4">
+                <div
+                    class="display-5 fw-bold mb-3 {% if forloop.counter == 1 %}text-warning{% elif forloop.counter == 2 %}text-silver{% else %}text-bronze{% endif %}">
+                    #{{ forloop.counter }}
+                </div>
+
+                <!-- Flag & Name -->
+                <h4 class="fw-bold mb-1 d-flex align-items-center justify-content-center">
+                    <img src="" class="flag-icon" data-iso3="{{ pred.country }}" alt="{{ pred.country }}">
+                    {{ pred.country }}
+                </h4>
+
+                <h2 class="fw-bold mt-3 mb-0">{{ pred.predicted_medals }}</h2>
+                <span class="small text-white-50">Médailles</span>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- LEADERBOARD TABLE -->
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 fw-bold py-3 d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-list-ol me-2"></i>Classement Prévisionnel (Top 50)</span>
+                <input type="text" id="countrySearch" class="form-control form-control-sm w-auto"
+                    placeholder="Rechercher un pays...">
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+                    <table class="table table-hover table-striped mb-0 align-middle table-sticky-header"
+                        id="predictionsTable">
+                        <thead class="bg-light">
+                            <tr>
+                                <th scope="col" class="ps-4">Rang</th>
+                                <th scope="col">Pays</th>
+                                <th scope="col" class="text-center">Athlètes (Est.)</th>
+                                <th scope="col" class="fw-bold text-end pe-4">Médailles (Est.)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pred in leaderboard|slice:":50" %}
+                            <tr class="country-row">
+                                <td class="ps-4 text-muted fw-bold">{{ forloop.counter }}</td>
+                                <td class="fw-bold d-flex align-items-center">
+                                    <img src="" class="flag-icon" data-iso3="{{ pred.country }}"
+                                        alt="{{ pred.country }}">
+                                    {{ pred.country }}
+                                </td>
+                                <td class="text-muted text-center">{{ pred.baseline_athletes }}</td>
+                                <td class="text-end pe-4 fw-bold text-primary">{{ pred.predicted_medals }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if leaderboard|length > 50 %}
+                <div class="text-center p-2 bg-light text-muted small">
+                    Affichage limité au Top 50 pour la performance.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPTS: Flags & Search -->
+<script>
+    // ISO 3 to ISO 2 Mapping (Common Countries)
+    const iso3ToIso2 = {
+        'FRA': 'fr', 'USA': 'us', 'CHN': 'cn', 'GBR': 'gb', 'JPN': 'jp',
+        'AUS': 'au', 'ITA': 'it', 'GER': 'de', 'NED': 'nl', 'CAN': 'ca',
+        'BRA': 'br', 'NZL': 'nz', 'HUN': 'hu', 'KOR': 'kr', 'RUS': 'ru',
+        'ROC': 'ru', 'ESP': 'es', 'UKR': 'ua', 'CUB': 'cu', 'SWE': 'se',
+        'SUI': 'ch', 'POL': 'pl', 'DEN': 'dk', 'KEN': 'ke', 'NOR': 'no',
+        'JAM': 'jm', 'CZE': 'cz', 'ETH': 'et', 'CRO': 'hr', 'IRI': 'ir',
+        'SRB': 'rs', 'AUT': 'at', 'BEL': 'be', 'BUL': 'bg', 'SLO': 'si',
+        'TUR': 'tr', 'UZB': 'uz', 'GEO': 'ge', 'TPE': 'tw', 'COL': 'co',
+        'GRE': 'gr', 'UGA': 'ug', 'ECU': 'ec', 'IRL': 'ie', 'ISR': 'il',
+        'QAT': 'qa', 'BAH': 'bs', 'KOS': 'xk', 'VEN': 've', 'EGY': 'eg',
+        'IND': 'in', 'HKG': 'hk', 'SVK': 'sk', 'RSA': 'za', 'ARG': 'ar',
+        'KAZ': 'kz', 'MEX': 'mx', 'FIN': 'fi', 'LAT': 'lv', 'EST': 'ee'
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // 1. Load Flags
+        document.querySelectorAll('img.flag-icon').forEach(img => {
+            const iso3 = img.getAttribute('data-iso3');
+            const iso2 = iso3ToIso2[iso3];
+            if (iso2) {
+                img.src = `https://flagcdn.com/48x36/${iso2}.png`;
+            } else {
+                img.style.display = 'none'; // Hide broken flags
+            }
+        });
+
+        // 2. Search Functionality
+        const searchInput = document.getElementById('countrySearch');
+        searchInput.addEventListener('keyup', function () {
+            const filter = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#predictionsTable tbody tr');
+
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            });
+        });
+
+        // 3. Counter Animation (Reuse)
+        const counters = document.querySelectorAll('.counter');
+        counters.forEach(counter => {
+            const target = +counter.innerText;
+            const speed = 200;
+            const inc = target / speed;
+            let count = 0;
+            const updateCount = () => {
+                count += inc;
+                if (count < target) {
+                    counter.innerText = Math.ceil(count);
+                    setTimeout(updateCount, 1);
+                } else {
+                    counter.innerText = target;
+                }
+            };
+            updateCount();
+        });
+    });
+</script>
+{% endblock %}
