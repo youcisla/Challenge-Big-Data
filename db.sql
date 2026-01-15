@@ -22,7 +22,6 @@ CREATE TABLE IF NOT EXISTS olympic_stats (
     total_athletes INTEGER,
     avg_age_athletes FLOAT,
     medals_in_current_year INTEGER,
-    game_slug VARCHAR(255),
     city VARCHAR(255),
     season VARCHAR(50),
     game_name VARCHAR(255),

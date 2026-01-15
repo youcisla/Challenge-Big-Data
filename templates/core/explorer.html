@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-5 align-items-center">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-2">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-decoration-none">Accueil</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Explorateur</li>
+            </ol>
+        </nav>
+        <h1 class="fw-bold display-6 mb-0"><i class="bi bi-search me-2 text-primary"></i>Explorateur de Données</h1>
+        <p class="text-muted lead mt-2">Analysez en profondeur les performances par pays et les tendances mondiales.</p>
+    </div>
+</div>
+
+<div class="row mb-5">
+    <div class="col-12 mb-3">
+        <h4 class="fw-bold text-dark border-bottom pb-2 d-flex align-items-center">
+            <i class="bi bi-flag-fill me-2 text-danger"></i> Focus France
+        </h4>
+        <p class="text-muted small">Réponses aux questions sur l'histoire olympique de la France.</p>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 fw-bold py-3"><i
+                    class="bi bi-pie-chart-fill me-2 text-secondary"></i>Répartition des Médailles</div>
+            <div class="card-body p-0">
+                <div id="fra-pie" style="height: 400px;"></div>
+                <script>
+                    var pieJSON = {{ fra_pie_json| safe }};
+                    Plotly.newPlot('fra-pie', pieJSON.data, pieJSON.layout, { responsive: true });
+                </script>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 fw-bold py-3"><i
+                    class="bi bi-graph-up me-2 text-secondary"></i>Évolution des Médailles</div>
+            <div class="card-body p-0">
+                <div id="fra-line" style="height: 400px;"></div>
+                <script>
+                    var lineJSON = {{ fra_line_json| safe }};
+                    Plotly.newPlot('fra-line', lineJSON.data, lineJSON.layout, { responsive: true });
+                </script>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12 mb-3">
+        <h4 class="fw-bold text-dark border-bottom pb-2 d-flex align-items-center">
+            <i class="bi bi-globe me-2 text-success"></i> Tendances Mondiales
+        </h4>
+        <p class="text-muted small">Analyse de la participation et de l'organisation des Jeux.</p>
+    </div>
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 fw-bold py-3"><i
+                    class="bi bi-geo-alt-fill me-2 text-primary"></i>Pays Hôtes</div>
+            <div class="card-body p-0">
+                <div id="hosts-bar" style="height: 400px;"></div>
+                <script>
+                    var barJSON = {{ hosts_bar_json| safe }};
+                    Plotly.newPlot('hosts-bar', barJSON.data, barJSON.layout, { responsive: true });
+                </script>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

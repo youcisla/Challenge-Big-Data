@@ -11,7 +11,6 @@ class OlympicStats(models.Model):
     total_athletes = models.IntegerField(blank=True, null=True)
     avg_age_athletes = models.FloatField(blank=True, null=True)
     medals_in_current_year = models.IntegerField(blank=True, null=True)
-    game_slug = models.CharField(max_length=255, blank=True, null=True)
     city = models.CharField(max_length=255, blank=True, null=True)
     season = models.CharField(max_length=50, blank=True, null=True)
     game_name = models.CharField(max_length=255, blank=True, null=True)

@@ -1,47 +1,75 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="hero text-center">
-    <h1 class="display-4 fw-bold">120 Years of Excellence</h1>
-    <p class="lead">Explore the history, trends, and future of the Olympic Games.</p>
-</div>
-
-<!-- KPI Cards -->
-<div class="row g-4 mb-5">
+<!-- Bento Grid KPIs -->
+<div class="row mb-4 g-3">
+    <!-- Stat 1 -->
     <div class="col-md-3">
-        <div class="card p-3 text-center">
-            <h6 class="text-muted">Total Games</h6>
-            <div class="metric-value">{{ total_games }}</div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card p-3 text-center">
-            <h6 class="text-muted">Countries</h6>
-            <div class="metric-value">{{ total_countries }}</div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card p-3 text-center">
-            <h6 class="text-muted">Athletes</h6>
-            <div class="metric-value">{{ total_athletes }}</div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card p-3 text-center">
-            <h6 class="text-muted">Medals Awarded</h6>
-            <div class="metric-value">{{ total_medals }}</div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-12">
-        <div class="card p-4">
-            <h4>🏅 Top Performing Countries</h4>
-            <div id="chart-container">
-                <!-- Plotly Chart will be rendered here -->
-                {{ chart_html|safe }}
+        <div class="card metric-card h-100 p-3">
+            <h6 class="text-uppercase text-muted small fw-bold ls-1 mb-2">Total Médailles</h6>
+            <div class="d-flex align-items-center justify-content-between">
+                <span class="metric-value text-gold">{{ total_medals|floatformat:"0g" }}</span>
+                <i class="bi bi-trophy-fill fs-3 text-gold opacity-50"></i>
             </div>
+            <div class="small text-muted mt-2">Attribuées depuis 1896</div>
+        </div>
+    </div>
+
+    <!-- Stat 2 -->
+    <div class="col-md-3">
+        <div class="card metric-card h-100 p-3">
+            <h6 class="text-uppercase text-muted small fw-bold ls-1 mb-2">Total Athlètes</h6>
+            <div class="d-flex align-items-center justify-content-between">
+                <span class="metric-value text-white">{{ total_athletes|floatformat:"0g" }}</span>
+                <i class="bi bi-people-fill fs-3 text-info opacity-50"></i>
+            </div>
+            <div class="small text-muted mt-2">Participants Uniques (Est.)</div>
+        </div>
+    </div>
+
+    <!-- Stat 3 -->
+    <div class="col-md-3">
+        <div class="card metric-card h-100 p-3">
+            <h6 class="text-uppercase text-muted small fw-bold ls-1 mb-2">Portée Mondiale</h6>
+            <div class="d-flex align-items-center justify-content-between">
+                <span class="metric-value text-white">{{ total_countries }}</span>
+                <i class="bi bi-globe-americas fs-3 text-success opacity-50"></i>
+            </div>
+            <div class="small text-muted mt-2">Pays Représentés</div>
+        </div>
+    </div>
+
+    <!-- Stat 4 -->
+    <div class="col-md-3">
+        <div class="card metric-card h-100 p-3">
+            <h6 class="text-uppercase text-muted small fw-bold ls-1 mb-2">Jeux Olympiques</h6>
+            <div class="d-flex align-items-center justify-content-between">
+                <span class="metric-value text-white">{{ total_games }}</span>
+                <i class="bi bi-controller fs-3 text-primary opacity-50"></i>
+            </div>
+            <div class="small text-muted mt-2">Été & Hiver</div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Map Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card p-3 shadow-lg">
+            <div class="card-header border-0 d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold m-0"><i class="bi bi-map-fill me-2 text-primary"></i>Répartition Mondiale</h5>
+                <a href="{% url 'explorer' %}" class="btn btn-sm btn-outline-light">Analyse Détaillée <i
+                        class="bi bi-arrow-right ms-2"></i></a>
+            </div>
+            <div id="map-chart" style="height: 600px; width: 100%;"></div>
+            <script>
+                var mapJSON = {{ chart_json| safe }};
+                if (mapJSON) {
+                    Plotly.newPlot('map-chart', mapJSON.data, mapJSON.layout, { responsive: true });
+                } else {
+                    document.getElementById('map-chart').innerHTML = '<p class="text-center p-4">Chargement des données...</p>';
+                }
+            </script>
         </div>
     </div>
 </div>
