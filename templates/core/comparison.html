@@ -59,8 +59,7 @@
                                 <td class="text-center fw-bold text-warning fs-5">{{ item.predicted }}</td>
                                 <td class="text-center text-info">{{ item.predicted_xgb }}</td>
                                 <td class="text-center text-success">{{ item.predicted_rf }}</td>
-                                <td class="text-center fw-bold text-white fs-5 border-start border-secondary">{{
-                                    item.real }}</td>
+                                <td class="text-center fw-bold text-white fs-5 border-start border-secondary">{{ item.real }}</td>
                                 <td class="text-center">
                                     {% if item.diff > 0 %}
                                     <span class="badge bg-success">+{{ item.diff }} (Performance)</span>
@@ -80,6 +79,13 @@
     </div>
 </div>
 
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+<!-- jQuery & DataTables JS -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+
 <script>
     const iso3ToIso2 = {
         'FRA': 'fr', 'USA': 'us', 'CHN': 'cn', 'GBR': 'gb', 'JPN': 'jp',
@@ -96,8 +102,25 @@
         'KAZ': 'kz', 'MEX': 'mx', 'FIN': 'fi', 'LAT': 'lv', 'EST': 'ee'
     };
 
-    document.addEventListener("DOMContentLoaded", () => {
-        // 1. FLAGS
+    $(document).ready(function () {
+        // 1. Initialize DataTables
+        const table = $('#compTable').DataTable({
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/fr-FR.json'
+            },
+            pageLength: 25,
+            order: [[1, 'desc']], // Default sort by Consensus (Col index 1)
+            columnDefs: [
+                { orderable: false, targets: [0] } // Disable sorting on Flag column if desired, or keep it
+            ]
+        });
+
+        // 2. Link Custom Search Box to DataTables
+        $('#compSearch').on('keyup', function () {
+            table.search(this.value).draw();
+        });
+
+        // 3. Flags (Native JS Helper used inside table draw if needed, but here simple load is fine)
         document.querySelectorAll('img[onerror]').forEach(img => {
             const row = img.closest('td');
             if (row) {
@@ -110,19 +133,6 @@
                 }
             }
         });
-
-        // 2. FILTER SEARCH
-        const searchInput = document.getElementById('compSearch');
-        if (searchInput) {
-            searchInput.addEventListener('keyup', function () {
-                const val = this.value.toLowerCase();
-                const rows = document.querySelectorAll('#compTable tbody tr');
-                rows.forEach(row => {
-                    const text = row.innerText.toLowerCase();
-                    row.style.display = text.includes(val) ? '' : 'none';
-                });
-            });
-        }
     });
 </script>
 {% endblock %}

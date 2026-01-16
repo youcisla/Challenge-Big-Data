@@ -76,72 +76,90 @@ class MLService:
         df = df.sort_values('year', ascending=False).drop_duplicates('country_3_letter_code')
         
         # Filter Defunct
-        defunct_codes = ['URS', 'GDR', 'FRG', 'EUN', 'ROC', 'TCH', 'YUG', 'SCG', 'BOH', 'ANZ', 'RU1', 'UAR']
+        defunct_codes = ['URS', 'GDR', 'FRG', 'EUN', 'ROC', 'TCH', 'YUG', 'SCG', 'BOH', 'ANZ', 'RU1', 'UAR', 'RUS', 'BLR']
         df = df[~df['country_3_letter_code'].isin(defunct_codes)]
-        
-        results = []
-        
-        # Pre-process for models
-        for _, row in df.iterrows():
-            country_code = row['country_3_letter_code']
-            
-            # --- XGB PREDICTION ---
-            xgb_pred = 0
-            if self.xgb_model and self.xgb_features:
-                # Construct XGB Input
-                xgb_input = {feat: 0 for feat in self.xgb_features}
-                
-                # Mappings (Same as before)
-                if 'total_athletes' in self.xgb_features: xgb_input['total_athletes'] = row.get('total_athletes', 0)
-                if 'avg_athlete_age' in self.xgb_features: xgb_input['avg_athlete_age'] = row.get('avg_age_athletes', 24.0)
-                if 'medalist_athletes' in self.xgb_features: xgb_input['medalist_athletes'] = row.get('total_medals', 0)
-                if 'avg_athlete_experience' in self.xgb_features: xgb_input['avg_athlete_experience'] = 1.0
-                if 'avg_games_participation' in self.xgb_features: xgb_input['avg_games_participation'] = 1.0
-                
-                # Host logic
-                if 'is_host' in xgb_input: 
-                    xgb_input['is_host'] = 1 if country_code == 'FRA' else 0
-                    
-                # OHE
-                ohe_col = f"country_3_letter_code_{country_code}"
-                if ohe_col in xgb_input: xgb_input[ohe_col] = 1
-                
-                # Predict XGB
-                X_xgb = pd.DataFrame([xgb_input])[self.xgb_features] # Ensure order
-                xgb_pred = max(0, int(round(self.xgb_model.predict(X_xgb)[0])))
 
-            # --- RF PREDICTION ---
-            rf_pred = 0
-            if self.rf_model and self.rf_features:
-                # Construct RF Input
-                # Features: ['total_athletes', 'avg_age_athletes', 'cumulative_medals', 'is_host', 'season_Winter']
-                rf_input = {}
-                rf_input['total_athletes'] = row.get('total_athletes', 0)
-                rf_input['avg_age_athletes'] = row.get('avg_age_athletes', 24.0)
-                rf_input['cumulative_medals'] = row.get('cumulative_medals', 0)
-                rf_input['is_host'] = 1 if country_code == 'FRA' else 0
-                rf_input['season_Winter'] = 0 # Summer Games
-                
-                # Ensure all features present (in case model has more)
-                for f in self.rf_features:
-                    if f not in rf_input: rf_input[f] = 0
-                    
-                # Predict RF
-                X_rf = pd.DataFrame([rf_input])[self.rf_features]
-                rf_pred = max(0, int(round(self.rf_model.predict(X_rf)[0])))
-                
-            # Consensus / Best Estimate
-            # We can take the average or choose one. Let's provide both + Average
-            avg_pred = int(round((xgb_pred + rf_pred) / 2))
+        results = []
+        if df.empty:
+            return results
+
+        # --- PREPARE BATCH INPUT ---
+        # We need a DataFrame that matches the model's expected features exactly.
+        
+        # 1. XGBoost Preparation
+        if self.xgb_model and self.xgb_features:
+            # Init with 0 using index from df
+            X_xgb = pd.DataFrame(0, index=df.index, columns=self.xgb_features)
             
-            results.append({
-                'country': country_code,
-                'predicted_medals_xgb': xgb_pred, # Legacy (Oracle V1)
-                'predicted_medals_rf': rf_pred,   # New (Oracle V2: Random Forest)
-                'predicted_medals': avg_pred,     # Consensus (Main Display)
-                'baseline_athletes': int(row.get('total_athletes', 0))
-            })
+            # Map features available in DB
+            # Note: feature names must match exactly what XGB expects
+            if 'total_athletes' in self.xgb_features: X_xgb['total_athletes'] = df['total_athletes']
+            if 'avg_athlete_age' in self.xgb_features: X_xgb['avg_athlete_age'] = df['avg_age_athletes'].fillna(24.0)
+            if 'medalist_athletes' in self.xgb_features: X_xgb['medalist_athletes'] = df['total_medals']
+            if 'avg_athlete_experience' in self.xgb_features: X_xgb['avg_athlete_experience'] = 1.0
+            if 'avg_games_participation' in self.xgb_features: X_xgb['avg_games_participation'] = 1.0
+            if 'gdp_per_capita' in self.xgb_features: X_xgb['gdp_per_capita'] = df.get('gdp_per_capita', 0)
+            if 'population' in self.xgb_features: X_xgb['population'] = df.get('population', 0)
             
+            # Host logic (France)
+            if 'is_host' in self.xgb_features:
+                X_xgb['is_host'] = (df['country_3_letter_code'] == 'FRA').astype(int)
+            
+            # OHE (Country Codes)
+            # This is tricky in batch if we don't know all columns, but self.xgb_features has them.
+            # We iterate only over countries present to set their specific OHE column
+            for idx, row in df.iterrows():
+                code = row['country_3_letter_code']
+                ohe_col = f"country_3_letter_code_{code}"
+                if ohe_col in self.xgb_features:
+                    X_xgb.at[idx, ohe_col] = 1
+
+            # Predict Batch
+            try:
+                # Ensure column order matches
+                X_xgb = X_xgb[self.xgb_features]
+                xgb_preds = self.xgb_model.predict(X_xgb)
+                df['xgb_pred'] = [max(0, int(round(x))) for x in xgb_preds]
+            except Exception as e:
+                print(f"XGB Batch Error: {e}")
+                df['xgb_pred'] = 0
+        else:
+            df['xgb_pred'] = 0
+
+        # 2. Random Forest Preparation
+        if self.rf_model and self.rf_features:
+            X_rf = pd.DataFrame(0, index=df.index, columns=self.rf_features)
+            
+            if 'total_athletes' in self.rf_features: X_rf['total_athletes'] = df['total_athletes']
+            if 'avg_age_athletes' in self.rf_features: X_rf['avg_age_athletes'] = df['avg_age_athletes'].fillna(24.0)
+            if 'cumulative_medals' in self.rf_features: X_rf['cumulative_medals'] = df['cumulative_medals']
+            if 'is_host' in self.rf_features: X_rf['is_host'] = (df['country_3_letter_code'] == 'FRA').astype(int)
+            if 'season_Winter' in self.rf_features: X_rf['season_Winter'] = 0
+            
+            try:
+                X_rf = X_rf[self.rf_features]
+                rf_preds = self.rf_model.predict(X_rf)
+                df['rf_pred'] = [max(0, int(round(x))) for x in rf_preds]
+            except Exception as e:
+                print(f"RF Batch Error: {e}")
+                df['rf_pred'] = 0
+        else:
+             df['rf_pred'] = 0
+
+        # 3. Aggregate Results
+        for _, row in df.iterrows():
+             xgb_p = row.get('xgb_pred', 0)
+             rf_p = row.get('rf_pred', 0)
+             consensus = int(round((xgb_p + rf_p) / 2))
+             
+             results.append({
+                'country': row['country_3_letter_code'],
+                'predicted_medals_xgb': xgb_p, 
+                'predicted_medals_rf': rf_p,
+                'predicted_medals': consensus,
+                'baseline_athletes': int(row['total_athletes'])
+             })
+
         # Sort by Consensus
         results.sort(key=lambda x: x['predicted_medals'], reverse=True)
         

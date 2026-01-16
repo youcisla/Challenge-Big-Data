@@ -3,6 +3,8 @@ from django.db.models import Count, Sum
 from .models import OlympicStats
 import plotly.express as px
 import pandas as pd
+import os
+from django.conf import settings
 
 def home(request):
     # 1. Calculate KPIs
@@ -244,35 +246,57 @@ def comparison(request):
         'Zambia': 'ZAM'
     }
 
-    # Data: Total Medals (Gold+Silver+Bronze) - Source: User Provided (Official Paris 2024)
-    official_totals = {
-        'United States': 126, 'China': 91, 'Japan': 45, 'Australia': 53, 'France': 64,
-        'Netherlands': 34, 'Great Britain': 65, 'South Korea': 32, 'Italy': 40, 'Germany': 33,
-        'New Zealand': 20, 'Canada': 27, 'Uzbekistan': 13, 'Hungary': 19, 'Spain': 18,
-        'Sweden': 11, 'Kenya': 11, 'Norway': 8, 'Ireland': 7, 'Brazil': 20,
-        'Iran': 12, 'Ukraine': 12, 'Romania': 9, 'Georgia': 7, 'Belgium': 10,
-        'Bulgaria': 7, 'Serbia': 5, 'Czech Republic': 5, 'Denmark': 9, 'Azerbaijan': 7,
-        'Croatia': 7, 'Cuba': 9, 'Bahrain': 4, 'Slovenia': 3, 'Chinese Taipei': 7,
-        'Austria': 5, 'Hong Kong': 4, 'Philippines': 4, 'Algeria': 3, 'Indonesia': 3,
-        'Israel': 7, 'Poland': 10, 'Kazakhstan': 7, 'Jamaica': 6, 'South Africa': 6,
-        'Thailand': 6, 'Individual Neutral Athletes': 5, 'Ethiopia': 4, 'Switzerland': 8,
-        'Ecuador': 5, 'Portugal': 4, 'Greece': 8, 'Argentina': 3, 'Egypt': 3,
-        'Tunisia': 3, 'Botswana': 2, 'Chile': 2, 'Saint Lucia': 2, 'Uganda': 2,
-        'Dominican Republic': 3, 'Guatemala': 2, 'Morocco': 2, 'Dominica': 1, 'Pakistan': 1,
-        'Turkey': 8, 'Mexico': 5, 'Armenia': 4, 'Colombia': 4, 'Kyrgyzstan': 6,
-        'North Korea': 6, 'Lithuania': 4, 'India': 6, 'Moldova': 4, 'Kosovo': 2,
-        'Cyprus': 1, 'Fiji': 1, 'Jordan': 1, 'Mongolia': 1, 'Panama': 1,
-        'Tajikistan': 3, 'Albania': 2, 'Grenada': 2, 'Malaysia': 2, 'Puerto Rico': 2,
-        'Cape Verde': 1, 'Ivory Coast': 1, 'Peru': 1, 'Qatar': 1, 'Refugee Olympic Team': 1,
-        'Singapore': 1, 'Slovakia': 1, 'Zambia': 1
-    }
-    
-    # Convert official Totals to Code map
+    # Data: Total Medals - Load from CSV
     official_by_code = {}
-    for name, total in official_totals.items():
-        if name in name_to_code:
-            code = name_to_code[name]
-            official_by_code[code] = total
+    try:
+        csv_path = os.path.join(settings.BASE_DIR, 'data', 'res2024.csv')
+        # Use pandas for easy reading (assuming simple format: Rank,NOC,Gold,Silver,Bronze,Total)
+        if os.path.exists(csv_path):
+            df_res = pd.read_csv(csv_path)
+            # Ensure columns exist
+            if 'NOC' in df_res.columns and 'Total' in df_res.columns:
+                for _, row in df_res.iterrows():
+                    country_name = str(row['NOC']).strip()
+                    total = int(row['Total'])
+                    
+                    # Map Name -> Code
+                    # First try direct map
+                    code = name_to_code.get(country_name)
+                    
+                    # If failed, try some manual overrides for common mismatches in Olympic data
+                    if not code:
+                        manual_map = {
+                            "People's Republic of China": "CHN",
+                            "Republic of Korea": "KOR",
+                            "Chinese Taipei": "TPE", 
+                            "Hong Kong, China": "HKG",
+                            "Great Britain": "GBR",
+                            "United States of America": "USA",
+                            "Islamic Republic of Iran": "IRI",
+                            "Democratic People's Republic of Korea": "PRK",
+                            "Türkiye": "TUR",
+                            "Czechia": "CZE",
+                            "Republic of Moldova": "MDA"
+                        }
+                        code = manual_map.get(country_name)
+                        if not code:
+                           # Reverse lookup in name_to_code (risky but better than nothing)? 
+                           # No, stick to safe maps.
+                           pass
+
+                    if code:
+                        official_by_code[code] = total
+        else:
+            print(f"RES2024 CSV not found at {csv_path}")
+
+        print(f"DEBUG: Official Data Loaded. Count: {len(official_by_code)}")
+        if 'USA' in official_by_code:
+            print(f"DEBUG: USA found -> {official_by_code['USA']}")
+        else:
+            print("DEBUG: USA NOT FOUND in official_by_code")
+
+    except Exception as e:
+        print(f"Error loading RES2024 CSV: {e}")
             
     comp_data = []
     
@@ -311,7 +335,7 @@ def comparison(request):
         })
         
     # Sort by 'Real' medals count
-    comp_data.sort(key=lambda x: x['real'], reverse=True)
+    comp_data.sort(key=lambda x: x['predicted'], reverse=True)
     
     context = {
         'comparison': comp_data
