@@ -5,7 +5,7 @@
 ## Description
 Une application web **Django** avancée conçue pour explorer les données historiques olympiques, démystifier les idées reçues et prédire les résultats des Jeux Olympiques de Paris 2024 à l'aide du **Machine Learning (XGBoost)**.
 
-![Aperçu du Dashboard](docs/dashboard_preview.png)
+![Aperçu du Dashboard](static/img/dashboard_preview.png)
 
 ## Fonctionnalités
 
