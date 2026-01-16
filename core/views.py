@@ -213,30 +213,97 @@ def predictions(request):
 
 def comparison(request):
     """
-    Compares AI predictions with 'Official' (Mocked) results.
+    Compares AI predictions with OFFICIAL Paris 2024 results.
     """
     ml_service = MLService()
     preds = ml_service.predict_paris_2024()
     
-    # Mock Official Results (Simulated for Demo)
-    import random
-    random.seed(42) # Fixed seed for consistency
+    # OFFICIAL PARIS 2024 RESULTS (Source: User Provided)
+    # Mapping Country Name -> (Gold, Silver, Bronze, Total)
+    # We need to map these Names to our 3-Letter Codes.
+    # Common IOC Code Mapping:
+    name_to_code = {
+        'United States': 'USA', 'China': 'CHN', 'Japan': 'JPN', 'Australia': 'AUS', 'France': 'FRA',
+        'Netherlands': 'NED', 'Great Britain': 'GBR', 'South Korea': 'KOR', 'Italy': 'ITA', 'Germany': 'GER',
+        'New Zealand': 'NZL', 'Canada': 'CAN', 'Uzbekistan': 'UZB', 'Hungary': 'HUN', 'Spain': 'ESP',
+        'Sweden': 'SWE', 'Kenya': 'KEN', 'Norway': 'NOR', 'Ireland': 'IRL', 'Brazil': 'BRA',
+        'Iran': 'IRI', 'Ukraine': 'UKR', 'Romania': 'ROU', 'Georgia': 'GEO', 'Belgium': 'BEL',
+        'Bulgaria': 'BUL', 'Serbia': 'SRB', 'Czech Republic': 'CZE', 'Denmark': 'DEN', 'Azerbaijan': 'AZE',
+        'Croatia': 'CRO', 'Cuba': 'CUB', 'Bahrain': 'BRN', 'Slovenia': 'SLO', 'Chinese Taipei': 'TPE',
+        'Austria': 'AUT', 'Hong Kong': 'HKG', 'Philippines': 'PHI', 'Algeria': 'ALG', 'Indonesia': 'INA',
+        'Israel': 'ISR', 'Poland': 'POL', 'Kazakhstan': 'KAZ', 'Jamaica': 'JAM', 'South Africa': 'RSA',
+        'Thailand': 'THA', 'Ethiopia': 'ETH', 'Switzerland': 'SUI', 'Ecuador': 'ECU', 'Portugal': 'POR',
+        'Greece': 'GRE', 'Argentina': 'ARG', 'Egypt': 'EGY', 'Tunisia': 'TUN', 'Botswana': 'BOT',
+        'Chile': 'CHI', 'Saint Lucia': 'LCA', 'Uganda': 'UGA', 'Dominican Republic': 'DOM', 'Guatemala': 'GUA',
+        'Morocco': 'MAR', 'Dominica': 'DMA', 'Pakistan': 'PAK', 'Turkey': 'TUR', 'Mexico': 'MEX',
+        'Armenia': 'ARM', 'Colombia': 'COL', 'Kyrgyzstan': 'KGZ', 'North Korea': 'PRK', 'Lithuania': 'LTU',
+        'India': 'IND', 'Moldova': 'MDA', 'Kosovo': 'KOS', 'Cyprus': 'CYP', 'Fiji': 'FIJ',
+        'Jordan': 'JOR', 'Mongolia': 'MGL', 'Panama': 'PAN', 'Tajikistan': 'TJK', 'Albania': 'ALB',
+        'Grenada': 'GRN', 'Malaysia': 'MAS', 'Puerto Rico': 'PUR', 'Cape Verde': 'CPV', 'Ivory Coast': 'CIV',
+        'Peru': 'PER', 'Qatar': 'QAT', 'Refugee Olympic Team': 'EOR', 'Singapore': 'SGP', 'Slovakia': 'SVK',
+        'Zambia': 'ZAM'
+    }
+
+    # Data: Total Medals (Gold+Silver+Bronze) - Source: User Provided (Official Paris 2024)
+    official_totals = {
+        'United States': 126, 'China': 91, 'Japan': 45, 'Australia': 53, 'France': 64,
+        'Netherlands': 34, 'Great Britain': 65, 'South Korea': 32, 'Italy': 40, 'Germany': 33,
+        'New Zealand': 20, 'Canada': 27, 'Uzbekistan': 13, 'Hungary': 19, 'Spain': 18,
+        'Sweden': 11, 'Kenya': 11, 'Norway': 8, 'Ireland': 7, 'Brazil': 20,
+        'Iran': 12, 'Ukraine': 12, 'Romania': 9, 'Georgia': 7, 'Belgium': 10,
+        'Bulgaria': 7, 'Serbia': 5, 'Czech Republic': 5, 'Denmark': 9, 'Azerbaijan': 7,
+        'Croatia': 7, 'Cuba': 9, 'Bahrain': 4, 'Slovenia': 3, 'Chinese Taipei': 7,
+        'Austria': 5, 'Hong Kong': 4, 'Philippines': 4, 'Algeria': 3, 'Indonesia': 3,
+        'Israel': 7, 'Poland': 10, 'Kazakhstan': 7, 'Jamaica': 6, 'South Africa': 6,
+        'Thailand': 6, 'Individual Neutral Athletes': 5, 'Ethiopia': 4, 'Switzerland': 8,
+        'Ecuador': 5, 'Portugal': 4, 'Greece': 8, 'Argentina': 3, 'Egypt': 3,
+        'Tunisia': 3, 'Botswana': 2, 'Chile': 2, 'Saint Lucia': 2, 'Uganda': 2,
+        'Dominican Republic': 3, 'Guatemala': 2, 'Morocco': 2, 'Dominica': 1, 'Pakistan': 1,
+        'Turkey': 8, 'Mexico': 5, 'Armenia': 4, 'Colombia': 4, 'Kyrgyzstan': 6,
+        'North Korea': 6, 'Lithuania': 4, 'India': 6, 'Moldova': 4, 'Kosovo': 2,
+        'Cyprus': 1, 'Fiji': 1, 'Jordan': 1, 'Mongolia': 1, 'Panama': 1,
+        'Tajikistan': 3, 'Albania': 2, 'Grenada': 2, 'Malaysia': 2, 'Puerto Rico': 2,
+        'Cape Verde': 1, 'Ivory Coast': 1, 'Peru': 1, 'Qatar': 1, 'Refugee Olympic Team': 1,
+        'Singapore': 1, 'Slovakia': 1, 'Zambia': 1
+    }
     
+    # Convert official Totals to Code map
+    official_by_code = {}
+    for name, total in official_totals.items():
+        if name in name_to_code:
+            code = name_to_code[name]
+            official_by_code[code] = total
+            
     comp_data = []
     
     for p in preds:
+        code = p['country']
         predicted = p['predicted_medals']
-        # Simulate 'Actual' results with some variance
-        variance = random.randint(-5, 5)
-        real = max(0, predicted + variance)
+        xgb_val = p.get('predicted_medals_xgb', 0)
+        rf_val = p.get('predicted_medals_rf', 0)
         
+        # Get real or default to 0 if not in list
+        real = official_by_code.get(code, 0)
+        
+        # Only compare if we have real data (or if predicted > 0, we assume real is 0 if missing)
+        # To avoid clutter, let's include if either predicted > 0 or real > 0
+        if predicted == 0 and real == 0:
+            continue
+            
         diff = real - predicted
         
-        status = 'perfect' if diff == 0 else ('under' if diff > 0 else 'over')
-        
+        if diff == 0:
+            status = 'perfect'
+        elif diff > 0:
+            status = 'under' # Predicted under real -> Good surprise
+        else:
+            status = 'over' # Predicted over real -> Disappointment
+            
         comp_data.append({
-            'country': p['country'],
+            'country': code,
             'predicted': predicted,
+            'predicted_xgb': xgb_val,
+            'predicted_rf': rf_val,
             'real': real,
             'diff': diff,
             'status': status,

@@ -21,31 +21,46 @@
 
 <div class="row">
     <div class="col-12">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0 fw-bold py-3">Tableau Comparatif</div>
+        <div class="card border-0 shadow-sm bg-dark text-white">
+            <div
+                class="card-header bg-transparent border-bottom border-secondary py-3 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0 text-white">Tableau Comparatif</h5>
+                <!-- Filter Input -->
+                <div class="input-group w-auto">
+                    <span class="input-group-text bg-secondary border-secondary text-white"><i
+                            class="bi bi-search"></i></span>
+                    <input type="text" id="compSearch" class="form-control bg-dark border-secondary text-white"
+                        placeholder="Filtrer...">
+                </div>
+            </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover table-striped mb-0 align-middle">
-                        <thead class="bg-light">
+                    <table class="table table-dark table-hover mb-0 align-middle" id="compTable">
+                        <thead class="bg-black">
                             <tr>
                                 <th scope="col" class="ps-4">Pays</th>
-                                <th scope="col" class="text-center fw-bold text-primary">Prédiction (IA)</th>
-                                <th scope="col" class="text-center fw-bold text-dark">Résultat (Simulé)</th>
-                                <th scope="col" class="text-center">Écart</th>
-                                <th scope="col" class="text-end pe-4">Précision</th>
+                                <th scope="col" class="text-center fw-bold text-warning">Consensus (Moy)</th>
+                                <th scope="col" class="text-center text-info">XGBoost (V1)</th>
+                                <th scope="col" class="text-center text-success">Random Forest (V2)</th>
+                                <th scope="col" class="text-center fw-bold text-white border-start border-secondary">
+                                    Résultat Réel</th>
+                                <th scope="col" class="text-center">Écart (Consensus)</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for item in comparison|slice:":50" %}
+                            {% for item in comparison %}
                             <tr>
-                                <td class="ps-4 fw-bold">
+                                <td class="ps-4 fw-bold text-white">
                                     <img src="https://flagcdn.com/24x18/{{ item.country|lower|slice:':2' }}.png"
                                         class="me-2 shadow-sm rounded-1" alt="{{ item.country }}"
                                         onerror="this.style.display='none'">
                                     {{ item.country }}
                                 </td>
-                                <td class="text-center fw-bold text-primary fs-5">{{ item.predicted }}</td>
-                                <td class="text-center fw-bold text-dark fs-5">{{ item.real }}</td>
+                                <td class="text-center fw-bold text-warning fs-5">{{ item.predicted }}</td>
+                                <td class="text-center text-info">{{ item.predicted_xgb }}</td>
+                                <td class="text-center text-success">{{ item.predicted_rf }}</td>
+                                <td class="text-center fw-bold text-white fs-5 border-start border-secondary">{{
+                                    item.real }}</td>
                                 <td class="text-center">
                                     {% if item.diff > 0 %}
                                     <span class="badge bg-success">+{{ item.diff }} (Performance)</span>
@@ -54,16 +69,6 @@
                                         {% else %}
                                         <span class="badge bg-primary">Exact !</span>
                                         {% endif %}
-                                </td>
-                                <td class="text-end pe-4">
-                                    {% if item.abs_diff == 0 %}
-                                    <i class="bi bi-check-circle-fill text-success"></i>
-                                    {% elif item.abs_diff <= 3 %} <i class="bi bi-check-circle text-success"></i>
-                                        {% elif item.abs_diff <= 10 %} <i class="bi bi-exclamation-circle text-warning">
-                                            </i>
-                                            {% else %}
-                                            <i class="bi bi-x-circle-fill text-danger"></i>
-                                            {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -76,13 +81,6 @@
 </div>
 
 <script>
-    // Since flagcdn needs ISO2, and our mapped list is in the parent predictions page, 
-    // we should ideally reuse it. But for simplicity in this new standalone view, 
-    // let's add a quick fallback script or rely on the slice trick in template if lucky,
-    // OR just include the mapping JS again.
-    // The template slice above `slice:':2'` is lazy and will likely fail for 3-letter codes that don't match first 2.
-    // Let's use the safer JS approach.
-
     const iso3ToIso2 = {
         'FRA': 'fr', 'USA': 'us', 'CHN': 'cn', 'GBR': 'gb', 'JPN': 'jp',
         'AUS': 'au', 'ITA': 'it', 'GER': 'de', 'NED': 'nl', 'CAN': 'ca',
@@ -99,13 +97,11 @@
     };
 
     document.addEventListener("DOMContentLoaded", () => {
+        // 1. FLAGS
         document.querySelectorAll('img[onerror]').forEach(img => {
-            // We might implement a fix here if the slice fails, but let's assume the user accepts the 'demo' nature.
-            // Actually, let's fix it properly.
-            const row = img.closest('tr');
+            const row = img.closest('td');
             if (row) {
-                const txt = row.querySelector('td').innerText.trim();
-                // Extract ISO3 from text (it's just the text)
+                const txt = row.innerText.trim();
                 const iso3 = txt;
                 const iso2 = iso3ToIso2[iso3];
                 if (iso2) {
@@ -114,6 +110,19 @@
                 }
             }
         });
+
+        // 2. FILTER SEARCH
+        const searchInput = document.getElementById('compSearch');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function () {
+                const val = this.value.toLowerCase();
+                const rows = document.querySelectorAll('#compTable tbody tr');
+                rows.forEach(row => {
+                    const text = row.innerText.toLowerCase();
+                    row.style.display = text.includes(val) ? '' : 'none';
+                });
+            });
+        }
     });
 </script>
 {% endblock %}

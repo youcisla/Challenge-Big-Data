@@ -147,49 +147,130 @@
 <!-- LEADERBOARD TABLE -->
 <div class="row">
     <div class="col-12">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0 fw-bold py-3 d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-list-ol me-2"></i>Classement Prévisionnel (Top 50)</span>
-                <input type="text" id="countrySearch" class="form-control form-control-sm w-auto"
-                    placeholder="Rechercher un pays...">
+        <div class="card border-0 shadow-sm bg-dark text-white">
+            <div
+                class="card-header bg-transparent border-bottom border-secondary py-3 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0 text-white"><i class="bi bi-trophy-fill me-2 text-warning"></i>Classement
+                    Prédictif (Consensus)</h5>
+
+                <!-- Filter Input -->
+                <div class="input-group w-auto">
+                    <span class="input-group-text bg-secondary border-secondary text-white"><i
+                            class="bi bi-search"></i></span>
+                    <input type="text" id="tableSearch" class="form-control bg-dark border-secondary text-white"
+                        placeholder="Filtrer (Pays, Chiffres...)...">
+                </div>
             </div>
             <div class="card-body p-0">
-                <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
-                    <table class="table table-hover table-striped mb-0 align-middle table-sticky-header"
+                <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                    <table class="table table-dark table-hover mb-0 align-middle table-sticky-header"
                         id="predictionsTable">
-                        <thead class="bg-light">
+                        <thead class="bg-black">
                             <tr>
-                                <th scope="col" class="ps-4">Rang</th>
-                                <th scope="col">Pays</th>
-                                <th scope="col" class="text-center">Athlètes (Est.)</th>
-                                <th scope="col" class="fw-bold text-end pe-4">Médailles (Est.)</th>
+                                <th scope="col" class="ps-4" style="cursor:pointer;" onclick="sortTable(0)">Rang <i
+                                        class="bi bi-arrow-down-up small ms-1 text-muted"></i></th>
+                                <th scope="col" style="cursor:pointer;" onclick="sortTable(1)">Pays <i
+                                        class="bi bi-arrow-down-up small ms-1 text-muted"></i></th>
+                                <th scope="col" class="text-center text-warning" style="cursor:pointer;"
+                                    onclick="sortTable(2)">Consensus (Moy) <i
+                                        class="bi bi-arrow-down-up small ms-1 text-muted"></i></th>
+                                <th scope="col" class="text-center text-info" style="cursor:pointer;"
+                                    onclick="sortTable(3)">Modèle XGB (Legacy) <i
+                                        class="bi bi-arrow-down-up small ms-1 text-muted"></i></th>
+                                <th scope="col" class="text-center text-success" style="cursor:pointer;"
+                                    onclick="sortTable(4)">Modèle RF (New) <i
+                                        class="bi bi-arrow-down-up small ms-1 text-muted"></i></th>
+                                <th scope="col" class="text-end pe-4" style="cursor:pointer;" onclick="sortTable(5)">
+                                    Délégation (2020) <i class="bi bi-arrow-down-up small ms-1 text-muted"></i></th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for pred in leaderboard|slice:":50" %}
-                            <tr class="country-row">
-                                <td class="ps-4 text-muted fw-bold">{{ forloop.counter }}</td>
-                                <td class="fw-bold d-flex align-items-center">
-                                    <img src="" class="flag-icon" data-iso3="{{ pred.country }}"
-                                        alt="{{ pred.country }}">
-                                    {{ pred.country }}
+                            {% for prediction in leaderboard %}
+                            <tr>
+                                <td class="ps-4 text-white-50 fw-bold">#{{ forloop.counter }}</td>
+                                <td class="fw-bold">
+                                    <img src="https://flagcdn.com/24x18/{{ prediction.country|lower|slice:':2' }}.png"
+                                        class="me-2 shadow-sm rounded-1" alt="{{ prediction.country }}"
+                                        onerror="this.style.display='none'">
+                                    {{ prediction.country }}
                                 </td>
-                                <td class="text-muted text-center">{{ pred.baseline_athletes }}</td>
-                                <td class="text-end pe-4 fw-bold text-primary">{{ pred.predicted_medals }}</td>
+                                <td class="text-center fw-bold text-warning fs-5">{{ prediction.predicted_medals }}</td>
+                                <td class="text-center text-info">{{ prediction.predicted_medals_xgb }}</td>
+                                <td class="text-center text-success">{{ prediction.predicted_medals_rf }}</td>
+                                <td class="text-end pe-4 text-white-50">{{ prediction.baseline_athletes }} athlètes</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-                {% if leaderboard|length > 50 %}
-                <div class="text-center p-2 bg-light text-muted small">
-                    Affichage limité au Top 50 pour la performance.
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    // 1. FILTERING
+    document.getElementById('tableSearch').addEventListener('keyup', function () {
+        const searchValue = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#predictionsTable tbody tr');
+
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(searchValue) ? '' : 'none';
+        });
+    });
+
+    // 2. SORTING
+    function sortTable(n) {
+        var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+        table = document.getElementById("predictionsTable");
+        switching = true;
+        dir = "asc";
+
+        while (switching) {
+            switching = false;
+            rows = table.rows;
+            // Loop through all table rows (except header)
+            for (i = 1; i < (rows.length - 1); i++) {
+                shouldSwitch = false;
+                x = rows[i].getElementsByTagName("TD")[n];
+                y = rows[i + 1].getElementsByTagName("TD")[n];
+
+                // Extract clean text (remove currency, etc if needed, here mostly numbers or text)
+                var xContent = x.innerText.toLowerCase();
+                var yContent = y.innerText.toLowerCase();
+
+                // Check if numeric
+                var xNum = parseFloat(xContent.replace(/[^0-9.-]+/g, ""));
+                var yNum = parseFloat(yContent.replace(/[^0-9.-]+/g, ""));
+
+                if (!isNaN(xNum) && !isNaN(yNum)) {
+                    if (dir == "asc") {
+                        if (xNum > yNum) { shouldSwitch = true; break; }
+                    } else if (dir == "desc") {
+                        if (xNum < yNum) { shouldSwitch = true; break; }
+                    }
+                } else {
+                    if (dir == "asc") {
+                        if (xContent > yContent) { shouldSwitch = true; break; }
+                    } else if (dir == "desc") {
+                        if (xContent < yContent) { shouldSwitch = true; break; }
+                    }
+                }
+            }
+            if (shouldSwitch) {
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true;
+                switchcount++;
+            } else {
+                if (switchcount == 0 && dir == "asc") {
+                    dir = "desc";
+                    switching = true;
+                }
+            }
+        }
+    }
+</script>
 
 <!-- SCRIPTS: Flags & Search -->
 <script>
