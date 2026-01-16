@@ -1,61 +1,68 @@
-# Oracle Paris 2024 - Olympic Games Analytics
+# Oracle Paris 2024 - Prédictions Olympiques
 
-An advanced **Django** web application designed to explore historical Olympic data, debunk myths, and predict the outcomes of the Paris 2024 Olympic Games using **Machine Learning (XGBoost)**.
+**[Voir la Présentation (Canva)](https://www.canva.com/design/DAG-lLUaYxM/pqSHDViuAFMNM5sQ_dwUKQ/edit?utm_content=DAG-lLUaYxM&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)**
 
-![Dashboard Preview](docs/dashboard_preview.png)
+## Description
+Une application web **Django** avancée conçue pour explorer les données historiques olympiques, démystifier les idées reçues et prédire les résultats des Jeux Olympiques de Paris 2024 à l'aide du **Machine Learning (XGBoost)**.
 
-## Features
+![Aperçu du Dashboard](docs/dashboard_preview.png)
 
-### 1. Interactive Dashboard & Explorer
--   **High-Level KPIs**: Real-time stats on Medals, Athletes, and Games.
--   **Interactive Charts**: 
-    -   Global Choropleth Map (Plotly) showing medal distribution.
-    -   Host Country Analysis (Top organizers).
-    -   Country-specific deep dives (France focus: Medal evolution, seasonal performance).
+## Fonctionnalités
 
-### 2. AI Predictions (Oracle Paris 2024)
--   **Algorithmic Forecasting**: Uses an **XGBoost Regressor** trained on 120 years of history to predict medal counts for Paris 2024.
--   **Feature Engineering**: Accounts for "Host Country Advantage", delegation size, and historical performance.
--   **Visualizations**:
-    -   **Podium**: Dynamic "Glassmorphism" cards for the Top 3 favorites.
-    -   **Leaderboard**: Complete predicted rankings with search and filtering.
-    -   **Golden Card**: Specific focus on France's predicted performance (+Comparisons).
+### 1. Tableau de Bord Interactif & Explorateur
+-   **KPI de Haut Niveau** : Statistiques en temps réel sur les médailles, athlètes et jeux.
+-   **Graphiques Interactifs** : 
+    -   Carte choroplèthe mondiale (Plotly) montrant la distribution des médailles.
+    -   Analyse des pays hôtes (principaux organisateurs).
+    -   Analyses approfondies par pays (Focus France : Évolution des médailles, performances saisonnières).
 
-### 3. Myths & Fact-Checking
--   Interactive cards verifying common Olympic myths (e.g., "Did women participate in 1900?").
--   Data-backed verdicts (True/False) with historical insights.
+### 2. Prédictions IA (Oracle Paris 2024)
+-   **Prévisions Algorithmiques** : Utilise un **XGBoost Regressor** entraîné sur 120 ans d'historique pour prédire le nombre de médailles à Paris 2024.
+-   **Feature Engineering** : Prend en compte l'avantage du pays hôte, la taille de la délégation et les performances historiques.
+-   **Visualisations** :
+    -   **Podium** : Cartes dynamiques en "Glassmorphisme" pour le Top 3 des favoris.
+    -   **Classement** : Prédictions complètes avec recherche et filtrage.
+    -   **Carte Dorée** : Focus spécifique sur la performance prédite de la France (+Comparaisons).
 
-### 4. Real vs AI Comparison
--   **Simulation Mode**: A dedicated page comparing AI predictions against "Official" (simulated) results.
--   **Performance Metrics**: Visual indicators of AI accuracy (Precision, Under/Over-performance).
+### 3. Mythes & Vérification des Faits
+-   Cartes interactives vérifiant les mythes olympiques courants (ex : "Les femmes ont-elles participé en 1900 ?").
+-   Verdicts basés sur les données (Vrai/Faux) avec aperçu historique.
 
----
-
-## Technology Stack
-
--   **Backend**: Python 3.10+, Django 5.x
--   **Database**: PostgreSQL (via Supabase)
--   **Data Science**: Pandas, NumPy, XGBoost, Scikit-Learn
--   **Frontend**: HTML5, Bootstrap 5, Dark Mode Aesthetic
--   **Visualization**: Plotly.js (Client-side rendering for interactivity)
+### 4. Comparaison Réel vs IA
+-   **Mode Simulation** : Une page dédiée comparant les prédictions de l'IA avec les résultats "officiels" (simulés).
+-   **Métriques de Performance** : Indicateurs visuels de la précision de l'IA (Précision, Sur/Sous-performance).
 
 ---
 
-## Installation & Setup
+## Stack Technologique
 
-### 1. Clone the Repository
+-   **Backend** : Python 3.10+, Django 5.x
+-   **Base de Données** : PostgreSQL (via Supabase)
+-   **Data Science** : Pandas, NumPy, XGBoost, Scikit-Learn
+-   **Frontend** : HTML5, Bootstrap 5, Thème Dark Mode
+-   **Visualisation** : Plotly.js (Rendu côté client pour l'interactivité)
+
+---
+
+## Installation & Configuration
+
+### 1. Cloner le Dépôt
 ```bash
 git clone https://github.com/youcisla/Challenge-Big-Data.git
 cd Challenge-Big-Data
 ```
 
-### 2. Install Dependencies
+### 2. Installer les Dépendances
 ```powershell
 pip install -r requirements.txt
 ```
+Ou utiliser le Makefile :
+```powershell
+make install
+```
 
-### 3. Environment Configuration
-Create a `.env` file in the root directory with your database credentials:
+### 3. Configuration de l'Environnement
+Créez un fichier `.env` à la racine du projet avec vos identifiants de base de données :
 ```ini
 user=postgres.your_project_ref
 password=your_database_password
@@ -66,40 +73,93 @@ SECRET_KEY=your_django_secret_key
 DEBUG=True
 ```
 
-### 4. Database Setup
-Run the import script to populate the `olympic_stats` table from the CSV dataset:
+Un fichier `.env.example` est fourni comme modèle.
+
+### 4. Configuration de la Base de Données
+Exécutez le script d'importation pour remplir la table `olympic_stats` depuis le dataset CSV :
 ```powershell
 python import_data.py
 ```
 
-### 5. Run the Application
-You can use the helper script (Windows):
+Si nécessaire, vous pouvez également appliquer le schéma SQL :
+```powershell
+python apply_schema.py
+```
+
+### 5. Lancer l'Application
+Vous pouvez utiliser le script helper (Windows) :
 ```powershell
 ./make run
 ```
-Or the standard Django command:
+Ou utiliser le Makefile :
+```bash
+make run
+```
+Ou encore la commande Django standard :
 ```powershell
 python manage.py runserver
 ```
 
-Open your browser at **http://127.0.0.1:8000** to access the Oracle.
+Ouvrez votre navigateur à l'adresse **http://127.0.0.1:8000** pour accéder à l'Oracle.
 
 ---
 
-## Project Structure
+## Commandes Disponibles
 
--   `config/`: Main Django settings and URL routing.
--   `core/`: Application logic.
-    -   `views.py`: Controls data flow and rendering.
-    -   `models.py`: Database schema definition.
-    -   `ml_service.py`: Singleton service managing the XGBoost model and predictions.
--   `ml_models/`: Stores the trained `.pkl` models.
--   `templates/`: HTML templates with Bootstrap styling.
--   `static/`: CSS (Dashboard themes), Images, and JS.
--   `data/`: Raw CSV datasets.
+Le projet inclut un **Makefile** pour simplifier les tâches courantes :
+
+-   `make install` : Installe toutes les dépendances Python
+-   `make run` : Lance le serveur de développement Django
+-   `make clean` : Nettoie les fichiers cache Python (`*.pyc`, `__pycache__`)
 
 ---
 
-## Contributors
--   **Project Team**: Y. Chehboub & Team
--   **Context**: Big Data Challenge / Hackathon
+## Structure du Projet
+
+```
+Challenge-Big-Data/
+├── config/              # Configuration Django et routage des URLs
+├── core/                # Logique de l'application
+│   ├── views.py         # Contrôle du flux de données et du rendu
+│   ├── models.py        # Définition du schéma de base de données
+│   └── ml_service.py    # Service singleton gérant le modèle XGBoost
+├── ml_models/           # Modèles ML entraînés (.pkl)
+├── templates/           # Templates HTML avec Bootstrap
+│   ├── base.html        # Template de base
+│   └── core/            # Templates de l'application
+│       ├── home.html           # Page d'accueil
+│       ├── explorer.html       # Explorateur de données
+│       ├── predictions.html    # Prédictions IA
+│       ├── myths.html          # Mythes olympiques
+│       └── comparison.html     # Comparaison Réel vs IA
+├── static/              # CSS, Images et JS
+├── data/                # Datasets CSV bruts
+├── notebooks/           # Notebooks Jupyter pour l'analyse
+├── requirements.txt     # Dépendances Python
+├── Makefile             # Commandes de développement
+└── manage.py            # Point d'entrée Django
+```
+
+---
+
+## Pages de l'Application
+
+1. **Accueil** (`/`) : Vue d'ensemble avec KPIs et introduction
+2. **Explorateur** (`/explorer`) : Visualisations interactives des données historiques
+3. **Prédictions** (`/predictions`) : Prédictions IA pour Paris 2024 avec podium et classement
+4. **Mythes** (`/myths`) : Vérification des mythes olympiques
+5. **Comparaison** (`/comparison`) : Comparaison entre prédictions IA et résultats simulés
+
+---
+
+## Données
+
+-   **Source** : Données historiques olympiques (1896-2024)
+-   **Format** : CSV stocké dans le dossier `data/`
+-   **Stockage** : PostgreSQL (Supabase) pour les requêtes performantes
+
+---
+
+## Licence
+
+Ce projet a été développé dans le cadre d'un challenge Big Data.
