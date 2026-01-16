@@ -44,7 +44,7 @@
                                 <th scope="col" class="text-center text-success">Random Forest (V2)</th>
                                 <th scope="col" class="text-center fw-bold text-white border-start border-secondary">
                                     Résultat Réel</th>
-                                <th scope="col" class="text-center">Écart (Consensus)</th>
+                                <th scope="col" class="text-center text-light">Écart (Consensus)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -57,9 +57,11 @@
                                     {{ item.country }}
                                 </td>
                                 <td class="text-center fw-bold text-warning fs-5">{{ item.predicted }}</td>
-                                <td class="text-center text-info">{{ item.predicted_xgb }}</td>
-                                <td class="text-center text-success">{{ item.predicted_rf }}</td>
-                                <td class="text-center fw-bold text-white fs-5 border-start border-secondary">{{ item.real }}</td>
+                                <td class="text-center text-info fw-semibold">{{ item.predicted_xgb }}</td>
+                                <td class="text-center text-success fw-semibold">{{ item.predicted_rf }}</td>
+                                <td class="text-center fw-bold text-white fs-5 border-start border-secondary">
+                                    {{ item.real }}
+                                </td>
                                 <td class="text-center">
                                     {% if item.diff > 0 %}
                                     <span class="badge bg-success">+{{ item.diff }} (Performance)</span>
@@ -81,6 +83,41 @@
 
 <!-- DataTables CSS -->
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+
+<!-- Custom CSS for improved contrast -->
+<style>
+    /* DataTables pagination and controls styling */
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter,
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate {
+        color: #f8f9fa !important;
+    }
+
+    .dataTables_wrapper .dataTables_length select,
+    .dataTables_wrapper .dataTables_filter input {
+        background-color: #2b3035 !important;
+        border-color: #495057 !important;
+        color: #f8f9fa !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        color: #f8f9fa !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+        background: #495057 !important;
+        color: white !important;
+        border-color: #495057 !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+        background: #0d6efd !important;
+        color: white !important;
+        border-color: #0d6efd !important;
+    }
+</style>
+
 <!-- jQuery & DataTables JS -->
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>

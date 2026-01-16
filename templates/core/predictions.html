@@ -120,10 +120,8 @@
     </div>
 
     {% for pred in top_3 %}
-    <div
-        class="col-md-3 {% if forloop.counter == 1 %}podium-1{% elif forloop.counter == 2 %}podium-2{% else %}podium-3{% endif %}">
-        <div class="card border-0 shadow-lg h-100 glass-card"
-            style="border-color: {% if forloop.counter == 1 %}rgba(251, 191, 36, 0.5){% elif forloop.counter == 2 %}rgba(192, 192, 192, 0.5){% else %}rgba(205, 127, 50, 0.5){% endif %};">
+    <div class="col-md-3 {% if forloop.counter == 1 %}podium-1{% elif forloop.counter == 2 %}podium-2{% else %}podium-3{% endif %}">
+        <div class="card border-0 shadow-lg h-100 glass-card" style="border-color: {% if forloop.counter == 1 %}rgba(251, 191, 36, 0.5){% elif forloop.counter == 2 %}rgba(192, 192, 192, 0.5){% else %}rgba(205, 127, 50, 0.5){% endif %};">
             <div class="card-body text-center py-4">
                 <div
                     class="display-5 fw-bold mb-3 {% if forloop.counter == 1 %}text-warning{% elif forloop.counter == 2 %}text-silver{% else %}text-bronze{% endif %}">
@@ -180,7 +178,8 @@
                                 <th scope="col" class="text-center text-success" style="cursor:pointer;"
                                     onclick="sortTable(4)">Modèle RF (New) <i
                                         class="bi bi-arrow-down-up small ms-1 text-muted"></i></th>
-                                <th scope="col" class="text-end pe-4" style="cursor:pointer;" onclick="sortTable(5)">
+                                <th scope="col" class="text-end pe-4 text-light" style="cursor:pointer;"
+                                    onclick="sortTable(5)">
                                     Délégation (2020) <i class="bi bi-arrow-down-up small ms-1 text-muted"></i></th>
                             </tr>
                         </thead>
@@ -195,8 +194,9 @@
                                     {{ prediction.country }}
                                 </td>
                                 <td class="text-center fw-bold text-warning fs-5">{{ prediction.predicted_medals }}</td>
-                                <td class="text-center text-info">{{ prediction.predicted_medals_xgb }}</td>
-                                <td class="text-center text-success">{{ prediction.predicted_medals_rf }}</td>
+                                <td class="text-center text-info fw-semibold">{{ prediction.predicted_medals_xgb }}</td>
+                                <td class="text-center text-success fw-semibold">{{ prediction.predicted_medals_rf }}
+                                </td>
                                 <td class="text-end pe-4 text-white-50">{{ prediction.baseline_athletes }} athlètes</td>
                             </tr>
                             {% endfor %}
@@ -302,17 +302,7 @@
             }
         });
 
-        // 2. Search Functionality
-        const searchInput = document.getElementById('countrySearch');
-        searchInput.addEventListener('keyup', function () {
-            const filter = this.value.toLowerCase();
-            const rows = document.querySelectorAll('#predictionsTable tbody tr');
-
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(filter) ? '' : 'none';
-            });
-        });
+        // 2. Search Functionality - REMOVED (duplicate, use tableSearch handler above)
 
         // 3. Counter Animation (Reuse)
         const counters = document.querySelectorAll('.counter');
