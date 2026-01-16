@@ -96,16 +96,29 @@ def explorer(request):
 
     # Performance Over Time (Line Chart)
     fra_timeline = list(france_qs.values('year', 'season', 'total_medals').order_by('year'))
-    fra_line_fig = px.line(
-        fra_timeline, 
-        x='year', 
-        y='total_medals', 
-        color='season',
-        title="Évolution du Nombre de Médailles (France)",
-        markers=True,
-        labels={'year': 'Année', 'total_medals': 'Médailles', 'season': 'Saison'}
-    )
-    fra_line_fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_family="Inter", font_color="#f8fafc")
+    fra_timeline_df = pd.DataFrame(fra_timeline)
+    
+    if not fra_timeline_df.empty:
+        fra_line_fig = px.line(
+            fra_timeline_df, 
+            x='year', 
+            y='total_medals', 
+            color='season',
+            title="Évolution du Nombre de Médailles (France)",
+            markers=True,
+            labels={'year': 'Année', 'total_medals': 'Médailles', 'season': 'Saison'}
+        )
+        fra_line_fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_family="Inter", font_color="#f8fafc")
+    else:
+        # Fallback empty chart
+        fra_line_fig = px.line(title="Évolution du Nombre de Médailles (France)")
+        fra_line_fig.update_layout(
+            paper_bgcolor='rgba(0,0,0,0)', 
+            plot_bgcolor='rgba(0,0,0,0)', 
+            font_family="Inter", 
+            font_color="#f8fafc",
+            annotations=[dict(text="Aucune donnée disponible", showarrow=False, font_size=16)]
+        )
     fra_line_json = safe_json_dump(fra_line_fig)
 
     # 2. General Trends 🌍
@@ -116,16 +129,28 @@ def explorer(request):
         .annotate(host_count=Count('year'))
         .order_by('-host_count')[:10]
     )
+    top_hosts_df = pd.DataFrame(list(top_hosts))
     
-    hosts_bar_fig = px.bar(
-        list(top_hosts),
-        x='country_3_letter_code',
-        y='host_count',
-        title="Pays ayant accueilli le plus de Jeux",
-        labels={'country_3_letter_code': 'Pays', 'host_count': 'Jeux Accueillis'},
-        color='host_count'
-    )
-    hosts_bar_fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_family="Inter", font_color="#f8fafc", coloraxis_colorbar=dict(tickfont=dict(color="#f8fafc")))
+    if not top_hosts_df.empty:
+        hosts_bar_fig = px.bar(
+            top_hosts_df,
+            x='country_3_letter_code',
+            y='host_count',
+            title="Pays ayant accueilli le plus de Jeux",
+            labels={'country_3_letter_code': 'Pays', 'host_count': 'Jeux Accueillis'},
+            color='host_count'
+        )
+        hosts_bar_fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_family="Inter", font_color="#f8fafc", coloraxis_colorbar=dict(tickfont=dict(color="#f8fafc")))
+    else:
+        # Fallback empty chart
+        hosts_bar_fig = px.bar(title="Pays ayant accueilli le plus de Jeux")
+        hosts_bar_fig.update_layout(
+            paper_bgcolor='rgba(0,0,0,0)', 
+            plot_bgcolor='rgba(0,0,0,0)', 
+            font_family="Inter", 
+            font_color="#f8fafc",
+            annotations=[dict(text="Aucune donnée disponible", showarrow=False, font_size=16)]
+        )
     hosts_bar_json = safe_json_dump(hosts_bar_fig)
 
     context = {
